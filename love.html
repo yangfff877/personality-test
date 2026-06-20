@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>恋爱依恋类型测试 · Attachment Style Test</title>
+<style>
+  :root {
+    --bg:#fdf8f4; --card:#fff; --text:#2c2416; --accent:#d4796e;
+    --muted:#8c7a6e; --border:#ede0d5; --pink:#e8738a; --blue:#5b8cb8;
+    --green:#5a9e6f; --gold:#d4a853;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;
+    background:var(--bg); min-height:100vh; display:flex; justify-content:center;
+    padding:20px 12px 40px; color:var(--text); line-height:1.6;
+  }
+  .app{width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px;}
+  .header{text-align:center;padding:28px 0 8px;}
+  .header h1{font-size:1.5rem;font-weight:800;letter-spacing:2px;}
+  .header .sub{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+  .card{
+    background:var(--card);border-radius:16px;padding:26px 22px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04);
+  }
+  .card h2{font-size:1rem;margin-bottom:4px;line-height:1.5;}
+  .card .tag{font-size:0.7rem;color:var(--muted);margin-bottom:16px;}
+  .options{display:flex;justify-content:space-between;gap:4px;}
+  .opt{
+    flex:1;text-align:center;padding:10px 3px;
+    border:2px solid var(--border);border-radius:10px;cursor:pointer;
+    transition:all 0.15s;font-size:0.68rem;background:#fdfcf9;
+  }
+  .opt:hover{border-color:#d0c0b0;}
+  .opt.sel{border-color:var(--accent);background:#fef5f3;font-weight:700;color:var(--accent);}
+  .opt .num{display:block;font-size:1.1rem;font-weight:800;margin-bottom:2px;}
+  .btn{
+    padding:14px 24px;border:none;border-radius:12px;font-size:0.95rem;
+    font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all 0.15s;
+  }
+  .btn-next{background:var(--accent);color:#fff;flex:3;}
+  .btn-next:disabled{opacity:0.35;cursor:not-allowed;}
+  .btn-next:not(:disabled):active{transform:scale(0.97);}
+  .btn-prev{background:#fff;border:2px solid var(--border);color:var(--muted);flex:1;}
+  .prog-text{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-bottom:4px;}
+  .prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .prog-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s;}
+  .page{display:none;}
+  .page.active{display:block;}
+  .intro-dims{list-style:none;margin:16px 0;display:flex;flex-direction:column;gap:8px;}
+  .intro-dims li{display:flex;align-items:flex-start;gap:10px;font-size:0.83rem;color:#555;}
+  .intro-dims .ico{
+    width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:0.9rem;font-weight:900;flex-shrink:0;
+  }
+
+  /* ── Results ─────────────────────── */
+  .res-header{text-align:center;padding:20px 0;}
+  .res-animal{font-size:100px;display:block;animation:bounce 0.6s ease infinite alternate;}
+  @keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-16px);}}
+  .res-type{font-size:2.2rem;font-weight:900;margin:8px 0;}
+  .res-sub{font-size:0.85rem;color:var(--muted);margin-bottom:4px;}
+
+  .quadrant-box{
+    background:var(--card);border-radius:16px;padding:20px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04);text-align:center;
+  }
+  .quadrant-box h3{font-size:0.82rem;color:var(--muted);margin-bottom:12px;letter-spacing:1px;}
+  .quadrant-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:1px;
+    background:var(--border);border-radius:12px;overflow:hidden;
+    max-width:320px;margin:0 auto;
+  }
+  .quad-cell{
+    background:#fff;padding:12px 8px;font-size:0.7rem;text-align:center;
+    transition:all 0.3s;
+  }
+  .quad-cell.highlight{
+    background:#fef5f3;font-weight:700;
+    box-shadow:inset 0 0 0 3px var(--accent);
+    border-radius:4px;position:relative;z-index:2;
+  }
+  .quad-cell .q-emoji{font-size:2rem;display:block;}
+  .quad-cell .q-name{font-weight:700;margin-top:2px;}
+  .quad-cell .q-dim{font-size:0.65rem;color:#999;}
+  .axis-labels{display:flex;justify-content:space-between;max-width:320px;margin:4px auto 0;font-size:0.65rem;color:#bbb;}
+
+  /* ── Metrics grid ────────────────── */
+  .metrics-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+    margin:14px 0;
+  }
+  .metric-card{
+    background:var(--card);border-radius:12px;padding:16px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.03);text-align:center;
+  }
+  .metric-card .m-icon{font-size:1.8rem;display:block;margin-bottom:4px;}
+  .metric-card .m-val{font-size:1.6rem;font-weight:900;}
+  .metric-card .m-label{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+  .metric-card .m-bar-bg{height:5px;background:#eee;border-radius:3px;margin-top:8px;overflow:hidden;}
+  .metric-card .m-bar{height:100%;border-radius:3px;transition:width 1s ease;}
+
+  /* ── Dimension cards ─────────────── */
+  .dim-card{
+    background:var(--card);border-radius:16px;padding:20px 22px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04);border-left:4px solid #ccc;margin-bottom:10px;
+  }
+  .dim-card.anx{border-left-color:var(--pink);}
+  .dim-card.avo{border-left-color:var(--blue);}
+  .dim-card.dep{border-left-color:var(--gold);}
+  .dim-card.sec{border-left-color:var(--green);}
+  .dim-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .dim-name{font-weight:800;font-size:0.95rem;}
+  .dim-score{font-weight:900;font-size:1.3rem;}
+  .dim-bar-bg{height:8px;background:#eee;border-radius:4px;margin:10px 0;overflow:hidden;}
+  .dim-bar{height:100%;border-radius:4px;transition:width 1s ease;}
+  .anx .dim-bar,.anx .m-bar{background:var(--pink);}
+  .avo .dim-bar,.avo .m-bar{background:var(--blue);}
+  .dep .dim-bar,.dep .m-bar{background:var(--gold);}
+  .sec .dim-bar,.sec .m-bar{background:var(--green);}
+  .dim-desc{font-size:0.82rem;color:#666;line-height:1.7;}
+
+  .detail-card{
+    background:var(--card);border-radius:16px;padding:22px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04);margin-bottom:10px;
+  }
+  .detail-card h3{font-size:1rem;margin-bottom:10px;}
+  .detail-card h4{font-size:0.85rem;margin:14px 0 4px;}
+  .detail-card p,.detail-card li{font-size:0.82rem;color:#666;line-height:1.7;}
+  .detail-card ul{margin-left:16px;}
+
+  .partner-card{
+    background:linear-gradient(135deg,#fef9f7,#fff5f5);border-radius:16px;
+    padding:22px;border:2px solid #f5ddd8;font-size:0.84rem;color:#555;line-height:1.8;
+    margin-bottom:10px;
+  }
+  .partner-card h3{font-size:0.95rem;color:var(--text);margin-bottom:8px;}
+  .partner-card .match-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+  .match-chip{
+    font-size:0.72rem;padding:6px 14px;border-radius:20px;font-weight:700;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .match-best{background:#e8f8e8;color:#2d6a3f;}
+  .match-ok{background:#fef9e7;color:#8b6914;}
+  .match-avoid{background:#fde8e8;color:#8b1a1a;}
+
+  .summary{
+    background:linear-gradient(135deg,#fef9f7,#fef5f1);border-radius:16px;
+    padding:22px;border:1px solid var(--border);font-size:0.84rem;color:#555;line-height:1.8;
+  }
+  .summary h3{font-size:0.95rem;color:var(--text);margin-bottom:8px;}
+
+  .btn-re{
+    background:#fff;border:2px solid var(--border);color:var(--muted);
+    padding:14px;border-radius:12px;width:100%;font-size:0.95rem;
+    cursor:pointer;font-family:inherit;margin-bottom:30px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>💕 恋爱依恋类型测试</h1>
+    <div class="sub">Attachment Style Test · 基于依恋理论</div>
+  </div>
+
+  <!-- ═══ Intro ════════════════════════════════════════ -->
+  <div class="page active" id="page-intro">
+    <div class="card">
+      <h2>关于依恋类型</h2>
+      <p style="font-size:0.84rem;color:#666;line-height:1.7;margin-top:6px;">
+        依恋理论（Attachment Theory）由心理学家 John Bowlby 提出，经过数十年的研究发展，
+        现已成为理解亲密关系最核心的理论框架之一。你的依恋风格深刻影响着——
+        你如何表达爱、如何应对冲突、以及你在关系中真正需要什么。
+      </p>
+      <p style="font-size:0.84rem;color:#666;line-height:1.7;margin-top:8px;">
+        本测试从 <b>四个维度</b> 进行全面评估：
+      </p>
+      <ul class="intro-dims">
+        <li><span class="ico" style="background:#fde8ee;color:var(--pink);">焦</span><b>依恋焦虑</b> — 对被抛弃的恐惧程度，关系中不安全感的外显</li>
+        <li><span class="ico" style="background:#e8f0f8;color:var(--blue);">回</span><b>依恋回避</b> — 对亲密和依赖的不适程度，独立空间的需求</li>
+        <li><span class="ico" style="background:#fef5e0;color:var(--gold);">赖</span><b>情感依赖度</b> — 在情感上对伴侣的依赖程度，独处承受能力</li>
+        <li><span class="ico" style="background:#e8f5eb;color:var(--green);">安</span><b>关系安全感</b> — 整体在关系中的安全、稳定和信任感受</li>
+      </ul>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:12px;">
+        📋 共 <b>24 题</b> &ensp;|&ensp;
+        ⏱ 约 3-4 分钟 &ensp;|&ensp;
+        🔒 数据仅存本地 &ensp;|&ensp;
+        🐶🐰🦊🐱 四种动物人格
+      </p>
+      <button class="btn btn-next" style="width:100%;margin-top:16px;" onclick="start()">开始测试 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ Questions ════════════════════════════════════ -->
+  <div class="page" id="page-questions">
+    <div style="margin-bottom:8px;">
+      <div class="prog-text"><span id="progLabel">第 1 题 / 24</span><span id="progPct">4%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:4%;"></div></div>
+    </div>
+    <div class="card" id="qCard"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-prev" id="btnPrev" style="display:none;" onclick="prevQ()">← 上一题</button>
+      <button class="btn btn-next" id="btnNext" disabled onclick="nextQ()">下一题 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ Results ══════════════════════════════════════ -->
+  <div class="page" id="page-results">
+    <div id="resContent"></div>
+    <button class="btn-re" onclick="restart()">🔄 重新测试</button>
+  </div>
+</div>
+
+<script>
+const QQ=[
+  // ── 依恋焦虑 (Anxiety) — 1-12 ──────────────────
+  {id:1,d:'anx',r:0,t:'我担心伴侣不会像我关心他/她那样关心我。'},
+  {id:2,d:'anx',r:1,t:'我不担心会被伴侣抛弃。'},
+  {id:3,d:'anx',r:0,t:'我经常担心伴侣并不是真的爱我。'},
+  {id:4,d:'anx',r:1,t:'在亲密关系中我很少感到不安或嫉妒。'},
+  {id:5,d:'anx',r:0,t:'我需要伴侣反复确认他/她对我的感情。'},
+  {id:6,d:'anx',r:1,t:'即使伴侣没有及时回复消息，我也不太焦虑。'},
+  {id:7,d:'anx',r:0,t:'当伴侣不在身边时，我会担心他/她可能对别人产生兴趣。'},
+  {id:8,d:'anx',r:1,t:'我不需要伴侣时刻关注我才能感到安全。'},
+  {id:9,d:'anx',r:0,t:'如果伴侣看起来有点冷淡，我会立刻担心是不是自己做错了什么。'},
+  {id:10,d:'anx',r:1,t:'我很少因为感情问题而失眠或食欲不振。'},
+  {id:11,d:'anx',r:0,t:'我害怕自己投入太多感情后被对方辜负。'},
+  {id:12,d:'anx',r:1,t:'单身对我来说并不恐惧，我可以在独处中找到满足。'},
+
+  // ── 依恋回避 (Avoidance) — 13-24 ────────────────
+  {id:13,d:'avo',r:0,t:'当伴侣想要和我过于亲近时，我会感到不舒服。'},
+  {id:14,d:'avo',r:1,t:'我觉得向伴侣敞开心扉是一件很自然的事。'},
+  {id:15,d:'avo',r:0,t:'我很难完全信任伴侣，总是保留一些距离。'},
+  {id:16,d:'avo',r:1,t:'在需要的时候，我会主动向伴侣寻求支持和安慰。'},
+  {id:17,d:'avo',r:0,t:'伴侣想要了解我内心深处的想法时，我会下意识地回避。'},
+  {id:18,d:'avo',r:1,t:'亲密关系对我来说是加分项，而不是束缚。'},
+  {id:19,d:'avo',r:0,t:'我更喜欢保持独立，不太喜欢把自己的生活完全和另一个人绑定。'},
+  {id:20,d:'avo',r:1,t:'我能够在保持亲密的同时拥有自己的独立空间。'},
+  {id:21,d:'avo',r:0,t:'一旦伴侣开始依赖我，我就会感到压力并想要抽离。'},
+  {id:22,d:'avo',r:1,t:'我不觉得依赖伴侣是一种软弱的表现。'},
+  {id:23,d:'avo',r:0,t:'我觉得没有恋爱关系我也可以过得很好，甚至更自由。'},
+  {id:24,d:'avo',r:1,t:'我相信真正的亲密关系可以让人成长而非失去自我。'},
+];
+
+const OPTS=[
+  {l:'非常不同意',v:1},{l:'不同意',v:2},{l:'中立',v:3},{l:'同意',v:4},{l:'非常同意',v:5},
+];
+
+let ans={},idx=0;
+
+// ═══════════ Animal Types ═══════════
+const TYPES={
+  secure:{
+    name:'🐶 安全型 · 金毛犬',
+    emoji:'🐶',
+    en:'Secure Attachment',
+    anx:'低焦虑',avo:'低回避',dep:'适度依赖',sec:'高安全感',
+    desc:'你是亲密关系中那个温暖坚定的存在——就像一只忠诚的金毛犬，你不惧怕爱与被爱。你相信自己是值得被爱的，也相信伴侣是可靠的。你在关系中感到舒适：既能享受亲密的依偎，也能允许彼此有独立的空间。你处理冲突的方式是建设性的——不会因为一次争吵就怀疑整段关系，也不会用冷战惩罚对方。你的安全感来自内心，而非外界的不断确认。</p><p>在人群中，安全型约占 <b>50-55%</b>，是最常见也是最健康的依恋类型。',
+    strengths:['情绪稳定，能在冲突中保持理性和善意','既能亲密也能独立，边界感健康而自然','善于坦诚沟通，不玩心理游戏','对伴侣信任度高，不轻易嫉妒或猜疑','是关系中"定海神针"般的存在，给伴侣带来稳定感'],
+    growth:['你天然的稳定感有时可能让你无法理解焦虑型伴侣的焦虑——他们需要口头确认，不是因为你做得不够，而是他们的内在警报需要安抚。多给一些主动的关心和确认，对他们来说意义巨大。'],
+    love:'<p>你的理想伴侣是同样<b>安全型</b>的人——两个人都能自在地爱与被爱，关系松弛而深厚，不需要猜来猜去。</p><p>如果你爱上了<b>焦虑型（🐰）</b>：你的稳定对他们来说是最好的治愈。记得多给他们口头确认——"我爱你""我很在意你"——这些对你来说可能多余的话，对他们来说是氧气。</p><p>如果你爱上了<b>回避型（🦊）</b>：给他足够的空间，不要逼他表达情感。你稳定的"不远不近"会让他慢慢卸下防备。</p><p style="color:var(--accent);font-weight:700;">💡 安全型 + 任何类型都有幸福的可能——你是依恋世界的通用货币。</p>',
+  },
+  anxious:{
+    name:'🐰 焦虑型 · 敏感兔',
+    emoji:'🐰',
+    en:'Anxious-Preoccupied',
+    anx:'高焦虑',avo:'低回避',dep:'高依赖',sec:'低安全感',
+    desc:'你像一只警觉的兔子——耳朵永远竖着，捕捉关系中每一个微小的信号。你极度渴望亲密和确认，害怕被抛弃是你情感世界的底色。伴侣一句不经意的冷淡、一条迟迟不回复的消息，都能在你心里掀起巨大的波澜。</p><p>但你的焦虑不是弱点——它是你爱得深沉的证明。你对情感的敏锐度让你能察觉到别人忽略的细节，你给出的爱浓烈而真挚。在人群中，焦虑型约占 <b>20-25%</b>。你的核心课题不是"如何让对方更爱你"，而是<b>"如何让自己相信——即使没有每一次的确认，爱依然是存在的"</b>。',
+    strengths:['情感浓烈而深刻，爱得真挚投入','对伴侣的情绪变化极度敏感，察知力极强','愿意为关系付出大量时间和精力，是认真对待感情的人','浪漫且富有创造力，善于制造惊喜和仪式感','忠诚度高，把亲密关系放在人生的核心位置'],
+    growth:['学会自我安抚——当焦虑来袭时，先深呼吸，不要把每一个负面的念头都当成事实。建立属于自己的人际圈子和生活重心——伴侣是你生活的重要部分，但不应该是全部。试着用"我需要……"而不是"你为什么不……"来表达需求，前者邀请对方靠近，后者让对方防御。'],
+    love:'<p>你的<b>最佳伴侣</b>是<b>安全型（🐶）</b>——他们的稳定、可靠和一致会像锚一样固定你，慢慢消解你内心的不安。他们的"不会突然消失"是你最需要的安全感。</p><p><b style="color:#8b6914;">次选：</b>另一个焦虑型也可以——你们都能理解对方的感受深度，但要注意两个人都需要向外建立独立的生活支点，否则容易互相消耗。</p><p><b style="color:#8b1a1a;">⚠ 谨慎选择回避型（🦊）</b>——你的追 + 他的逃 = 痛苦的追逐循环。你会因为他的一点点疏远而疯狂追逐，而他会因为你的追逐而逃得更快。这不是任何人的错，只是两种依恋风格的天生冲突。</p>',
+  },
+  avoidant:{
+    name:'🦊 回避型 · 独立狐',
+    emoji:'🦊',
+    en:'Dismissive-Avoidant',
+    anx:'低焦虑',avo:'高回避',dep:'低依赖',sec:'中等安全感',
+    desc:'你像一只优雅而疏离的狐狸——习惯独来独往，在关系中始终留着一扇随时可以离开的门。亲密对你来说是一把双刃剑：你渴望爱，但更害怕失去自由。当有人试图靠得太近，你的本能反应是后退——"我不需要任何人"是你最熟悉的自我保护。</p><p>你的独立和自足让人羡慕——你一个人可以把生活打理得很好，不需要依赖谁来获得安全感。在人群中，回避型约占 <b>15-20%</b>。你的核心课题是：<b>真正的独立不是拒绝依赖，而是在敢于依赖的同时依然不失去自己。</b>',
+    strengths:['高度独立自主，一个人也能把生活过得精彩充实','理性冷静，不容易被情绪左右，在危机中表现沉稳','不黏人，给伴侣充足的个人空间和自由','自我驱动型，事业和个人成长不受关系波动的影响','边界感清晰，知道自己要什么，不容易迷失自我'],
+    growth:['首先承认：你也是需要亲密和依靠的——这不可耻，这是人类的基本需求。试着在安全的小事上对伴侣示弱或寻求帮助，你会发现依赖并不等于失去控制。当伴侣试图靠近你的时候，先别急着推开，停顿三秒，感受一下那份温暖——它不一定会灼伤你。'],
+    love:'<p>你的<b>最佳伴侣</b>是<b>安全型（🐶）</b>——他们会尊重你的独立空间，不会追着你要求确认。他们稳定的存在会让你慢慢学会在关系中感到安全——你知道他们不会突然消失，所以你可以在自己的节奏里慢慢靠近。</p><p><b style="color:#8b6914;">次选：</b>另一个回避型——你们互不打扰，关系可以很轻松。但要注意不要变成"室友式恋爱"，偶尔主动表达关心是必要的关系润滑剂。</p><p><b style="color:#8b1a1a;">⚠ 谨慎选择焦虑型（🐰）</b>——他们的高情感需求会让你感到窒息，你的回避反应会让他们更加焦虑。如果你真的想和焦虑型在一起，你需要有意识地多走一步，而不是每次感到压力就撤退。</p>',
+  },
+  fearful:{
+    name:'🐱 恐惧型 · 警戒猫',
+    emoji:'🐱',
+    en:'Fearful-Avoidant / Disorganized',
+    anx:'高焦虑',avo:'高回避',dep:'矛盾依赖',sec:'低安全感',
+    desc:'你像一只经历过风雨的猫——既渴望被温柔地抚摸，又时刻保持警觉，随时准备逃走。你内心有一个矛盾的核心：<b>"我想要爱，但我害怕受伤"</b>。当关系顺利时，你会担心一切只是暴风雨前的宁静；当真的出现问题时，你又本能地退缩和关闭。</p><p>这是最复杂也最辛苦的依恋类型——你同时具备焦虑型的情感强度 <b>和</b> 回避型的防御机制。你渴望亲密，但一旦亲密发生，恐惧就随之而来。在人群中，恐惧型约占 <b>5-7%</b>。你的核心课题不是"找到完美的伴侣"，而是<b>"在关系中慢慢学习感到安全"</b>——这需要时间，但绝对可以做到。',
+    strengths:['情感深度与复杂性让你对人性有独特而敏锐的洞察','独立与依恋共存，能在两种模式之间灵活切换','经历过创伤后拥有惊人的心理韧性和复原力','对危险和伤害有高度警觉，直觉很强','一旦真正信任一个人，会是最忠实、最投入的伴侣'],
+    growth:['首先，理解你的恐惧反应是过去的自我保护机制——它曾经保护过你，但现在可能不再需要了。试着在安全的关系中一点点冒险：暴露自己的一小部分脆弱，然后观察——伤害没有发生。考虑专业的心理咨询或依恋修复课程——你的复原力比你想象中强大得多。你是四种类型中最有可能经历深刻转变的人。'],
+    love:'<p>你的<b>最佳伴侣</b>是<b>安全型（🐶）</b>——你需要一个极其稳定、有耐心、情绪一致的人。他们会像锚一样，在你情绪风暴时纹丝不动地陪着你。你不会因为一次冷淡就失去他们——这种恒定性是你最需要也最稀缺的安全来源。</p><p><b style="color:#8b6914;">次选：</b>一个正在成长中、有自我觉察的焦虑型——你们能理解彼此的痛苦，可以一起走向更安全的状态。但前提是双方都在主动学习和改变。</p><p><b style="color:#8b1a1a;">⚠ 谨慎选择回避型（🦊）</b>——两个都不善于表达情感的人在一起，容易陷入"谁先开口谁就输了"的僵局，关系很难真正展开。</p>',
+  },
+};
+
+const DIM_NAMES={anx:'依恋焦虑',avo:'依恋回避'};
+const DIM_COLORS={anx:'#e8738a',avo:'#5b8cb8',dep:'#d4a853',sec:'#5a9e6f'};
+
+// ═══════════ Start ═══════════
+window.start=function(){ans={};idx=0;document.getElementById('page-intro').classList.remove('active');document.getElementById('page-questions').classList.add('active');renderQ(0);};
+
+function renderQ(i){
+  idx=i;const q=QQ[i];
+  document.getElementById('progLabel').textContent='第 '+(i+1)+' 题 / '+QQ.length;
+  const p=Math.round(((i+1)/QQ.length)*100);
+  document.getElementById('progPct').textContent=p+'%';
+  document.getElementById('progFill').style.width=p+'%';
+  const bt=q.d==='anx'?'💗':'💙';
+  document.getElementById('qCard').innerHTML='<h2>'+bt+' '+q.t+'</h2><div class="tag">'+DIM_NAMES[q.d]+'维度</div><div class="options" id="opts"></div>';
+  const ops=document.getElementById('opts');
+  OPTS.forEach(o=>{
+    const dv=document.createElement('div');
+    dv.className='opt'+(ans[q.id]===o.v?' sel':'');
+    dv.innerHTML='<span class="num">'+o.v+'</span>'+o.l;
+    dv.addEventListener('click',()=>{ops.querySelectorAll('.opt').forEach(e=>e.classList.remove('sel'));dv.classList.add('sel');ans[q.id]=o.v;document.getElementById('btnNext').disabled=false;});
+    ops.appendChild(dv);
+  });
+  document.getElementById('btnNext').textContent=i===QQ.length-1?'💕 查看结果':'下一题 →';
+  document.getElementById('btnPrev').style.display=i===0?'none':'block';
+  document.getElementById('btnNext').disabled=!ans[q.id];
+}
+
+window.nextQ=function(){if(idx<QQ.length-1) renderQ(idx+1); else showResults();};
+window.prevQ=function(){if(idx>0) renderQ(idx-1);};
+
+// ═══════════ Scoring ═══════════
+function calc(){
+  const dims={anx:[],avo:[]};
+  QQ.forEach(q=>{
+    let s=ans[q.id];if(q.r) s=6-s;dims[q.d].push(s);
+  });
+  const scores={};
+  ['anx','avo'].forEach(d=>{
+    const t=dims[d].reduce((a,b)=>a+b,0);
+    scores[d]=Math.round((t/(dims[d].length*5))*100);
+  });
+  // 依赖度 = 加权：焦虑分高 → 依赖高，回避分高 → 依赖低
+  let depRaw=(scores.anx - scores.avo + 100)/2;
+  scores.dep=Math.round(Math.max(5,Math.min(95,depRaw)));
+  // 安全感 = 反向：焦虑+回避越低 → 安全感越高
+  let secRaw=100-(scores.anx+scores.avo)/2;
+  scores.sec=Math.round(Math.max(5,Math.min(95,secRaw)));
+  return scores;
+}
+
+function getType(sc){
+  const anxHigh=sc.anx>=50, avoHigh=sc.avo>=50;
+  if(!anxHigh&&!avoHigh) return 'secure';
+  if(anxHigh&&!avoHigh) return 'anxious';
+  if(!anxHigh&&avoHigh) return 'avoidant';
+  return 'fearful';
+}
+
+function px(sc,low,mid,high){
+  if(sc>=67) return high;
+  if(sc>=34) return mid;
+  return low;
+}
+
+const ANX_DESC={
+  high:'你的依恋焦虑水平偏高。你对关系中的不确定性高度敏感，需要伴侣持续的确认和关注来获得安全感。这种焦虑源于对被抛弃的深层恐惧——但好消息是，你的情感敏锐性让你能深刻体会爱，一旦学会自我安抚，你会成为一个充满热忱和忠诚的伴侣。',
+  mid:'你的依恋焦虑处于中等水平。关系稳定时你感到安全，但出现不确定性时——比如对方突然冷淡、消息回复变慢——你会有明显的焦虑反应。总体在可控范围内，学会一些情绪调节技巧会让关系更加顺滑。',
+  low:'你的依恋焦虑水平很低。你不需要伴侣时刻确认爱意，也不会因为暂时的分离或冷淡而陷入恐慌。你的安全感主要来自内心而非外界，这让你在关系中保持从容和理性。',
+};
+const AVO_DESC={
+  high:'你的依恋回避水平偏高。你对过于亲密的关系感到不适，强烈需要个人空间和独立。依赖他人让你感到脆弱——"我一个人也能过得很好"是你最熟悉的保护色。学习安全地依赖他人，是你通往更深层幸福的钥匙。',
+  mid:'你的依恋回避处于中等水平。你重视独立空间，但也不会完全拒绝亲密。在关系初期你可能有些慢热和保守，但一旦建立信任，你能逐渐打开心扉。',
+  low:'你的依恋回避水平很低。你对亲密关系感到自在，愿意在伴侣面前展现真实的自己——包括脆弱和不完美。你能自然地表达情感和需求，这让你的关系容易建立深度连接。',
+};
+const DEP_DESC={
+  high:'你的情感依赖度偏高。你在情感上比较依靠伴侣的存在和反馈来维持自己的安全感和幸福感。这让你在关系中投入而专注，但也意味着独处对你来说可能是挑战。建议培养属于自己的社交圈和兴趣爱好——一个完整的你，才能给出健康的爱。',
+  mid:'你的情感依赖度适中。你在关系中既能享受依靠彼此的感觉，也有能力在独处时找到满足。这是一种健康的平衡——你不是不依赖，而是"有选择地依赖"。',
+  low:'你的情感依赖度偏低。你习惯独自处理情绪，不太依赖伴侣来获得心理上的满足。这让你在关系中具有很强的独立性和抗压能力。但也要注意——适度的相互依赖是亲密关系的重要组成部分，偶尔靠一靠对方不是软弱。',
+};
+const SEC_DESC={
+  high:'你的关系安全感很高。你在亲密关系中整体感到安心和稳定，相信自己是值得被爱的，也相信伴侣是可靠的。这是建立健康长期关系的坚实基础——你不被焦虑和恐惧支配，能在爱中自由地做自己。',
+  mid:'你的关系安全感处于中等水平。在大多数时候你感到安全和稳定，但偶尔的波动和不确定性还是会影响你的内心状态。总体而言，你的关系体验偏向积极。',
+  low:'你的关系安全感偏低。你在亲密关系中常常感到不确定和不安——可能是因为过去的伤害经历，也可能是当前的依恋模式使然。但安全感是可以重建的：通过选择可靠的人、在安全的关系中不断体验正向反馈，你内心的安全感会慢慢生长。',
+};
+
+// ═══════════ Results ═══════════
+function showResults(){
+  const sc=calc();
+  const type=getType(sc);
+  const tp=TYPES[type];
+
+  document.getElementById('page-questions').classList.remove('active');
+  document.getElementById('page-results').classList.add('active');
+
+  let h='';
+
+  // ── Header ─────────────────────
+  h+='<div class="res-header">';
+  h+='<span class="res-animal">'+tp.emoji+'</span>';
+  h+='<div class="res-type">'+tp.name+'</div>';
+  h+='<div class="res-sub">'+tp.en+'&ensp;|&ensp;'+tp.anx+' & '+tp.avo+'</div>';
+  h+='</div>';
+
+  // ── Four metrics ──────────────
+  h+='<h3 style="font-size:0.85rem;color:var(--muted);margin-bottom:4px;padding:0 4px;">📊 四项核心指标</h3>';
+  h+='<div class="metrics-grid">';
+
+  const metrics=[
+    {d:'anx',icon:'💗',label:'依恋焦虑',color:var(--pink),lv:px(sc.anx,'低','中','高')},
+    {d:'avo',icon:'💙',label:'依恋回避',color:var(--blue),lv:px(sc.avo,'低','中','高')},
+    {d:'dep',icon:'🧷',label:'情感依赖度',color:var(--gold),lv:px(sc.dep,'低','中','高')},
+    {d:'sec',icon:'🛡️',label:'关系安全感',color:var(--green),lv:px(sc.sec,'低','中','高')},
+  ];
+  metrics.forEach(m=>{
+    h+='<div class="metric-card '+m.d+'">';
+    h+='<span class="m-icon">'+m.icon+'</span>';
+    h+='<div class="m-val" style="color:'+DIM_COLORS[m.d]+';">'+sc[m.d]+'<span style="font-size:0.7rem;font-weight:400;"> 分</span></div>';
+    h+='<div class="m-label">'+m.label+' · '+m.lv+'</div>';
+    h+='<div class="m-bar-bg"><div class="m-bar" style="width:'+sc[m.d]+'%;"></div></div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // ── Quadrant ───────────────────
+  h+='<div class="quadrant-box"><h3>依恋风格四象限</h3>';
+  h+='<div class="quadrant-grid">';
+  const cells=[
+    {pos:'tl',type:'secure',label:'🐶 安全型',dim:'低焦虑 · 低回避'},
+    {pos:'tr',type:'anxious',label:'🐰 焦虑型',dim:'高焦虑 · 低回避'},
+    {pos:'bl',type:'avoidant',label:'🦊 回避型',dim:'低焦虑 · 高回避'},
+    {pos:'br',type:'fearful',label:'🐱 恐惧型',dim:'高焦虑 · 高回避'},
+  ];
+  cells.forEach(c=>{
+    h+='<div class="quad-cell'+(c.type===type?' highlight':'')+'">';
+    h+='<span class="q-emoji">'+(c.type==='secure'?'🐶':c.type==='anxious'?'🐰':c.type==='avoidant'?'🦊':'🐱')+'</span>';
+    h+='<div class="q-name">'+c.label+'</div>';
+    h+='<div class="q-dim">'+c.dim+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="axis-labels"><span>← 低回避</span><span>高回避 →</span></div>';
+  h+='<p style="font-size:0.65rem;color:#bbb;margin-top:4px;">↑ 高焦虑 &ensp;&ensp;&ensp; 低焦虑 ↓</p>';
+  h+='</div>';
+
+  // ── Dimension details ──────────
+  h+='<h3 style="font-size:0.85rem;color:var(--muted);margin:16px 0 8px;padding:0 4px;">维度详细分析</h3>';
+
+  const dimDetails=[
+    {d:'anx',cn:'anx',lbl:'💗 依恋焦虑',desc:ANX_DESC},
+    {d:'avo',cn:'avo',lbl:'💙 依恋回避',desc:AVO_DESC},
+    {d:'dep',cn:'dep',lbl:'🧷 情感依赖度',desc:DEP_DESC},
+    {d:'sec',cn:'sec',lbl:'🛡️ 关系安全感',desc:SEC_DESC},
+  ];
+  dimDetails.forEach(dim=>{
+    const s=sc[dim.d];
+    const lv=px(s,'偏低','中等','偏高');
+    h+='<div class="dim-card '+dim.cn+'">';
+    h+='<div class="dim-row"><span class="dim-name">'+dim.lbl+'</span><span class="dim-score" style="color:'+DIM_COLORS[dim.d]+';">'+s+' 分 · '+lv+'</span></div>';
+    h+='<div class="dim-bar-bg"><div class="dim-bar" style="width:'+s+'%;"></div></div>';
+    h+='<div class="dim-desc">'+dim.desc[lv==='偏高'?'high':lv==='偏低'?'low':'mid']+'</div>';
+    h+='</div>';
+  });
+
+  // ── Deep dive ──────────────────
+  h+='<div class="detail-card">';
+  h+='<h3>📖 '+tp.name.split('·')[0]+' 深度解读</h3>';
+  h+='<p>'+tp.desc+'</p>';
+
+  h+='<h4 style="color:var(--green);">✨ 你的优势</h4><ul>';
+  tp.strengths.forEach(s=>{h+='<li>'+s+'</li>';});
+  h+='</ul>';
+
+  h+='<h4 style="color:var(--accent);">🌱 成长方向</h4>';
+  tp.growth.forEach(s=>{h+='<p style="font-size:0.82rem;color:#666;">'+s+'</p>';});
+  h+='</div>';
+
+  // ── Ideal partner ──────────────
+  h+='<div class="partner-card">';
+  h+='<h3>💘 你的理想另一半</h3>';
+  h+=tp.love;
+  h+='</div>';
+
+  // ── Disclaimer ────────────────
+  h+='<p style="font-size:0.7rem;color:#bbb;text-align:center;margin-top:16px;line-height:1.7;">本测试基于 ECR（Experiences in Close Relationships）量表编制。<br>依恋风格并非固定不变——通过自我觉察和健康的关系体验，你完全可以向安全型转变。<br>每种类型都有自己独特的美。爱自己，是学会爱人的第一步。</p>';
+
+  document.getElementById('resContent').innerHTML=h;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+window.restart=function(){ans={};idx=0;
+  document.getElementById('page-results').classList.remove('active');
+  document.getElementById('page-questions').classList.remove('active');
+  document.getElementById('page-intro').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+</script>
+</body>
+</html>
