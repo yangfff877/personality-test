@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人格基因检测 · 哈佛行为科学研究院</title>
+<style>
+  :root {
+    --bg: #f5f0eb;
+    --card: #fff;
+    --text: #2c2416;
+    --accent: #8b5e3c;
+    --gold: #c9a96e;
+    --muted: #8c8070;
+    --border: #e5ded5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+    background: linear-gradient(180deg, #faf7f2 0%, #ede4d3 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    color: var(--text);
+  }
+
+  .app {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Header ───────────────────────────────── */
+  .brand {
+    text-align: center;
+    padding: 20px 0 4px;
+  }
+  .brand .icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .brand h1 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .brand .sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ── Cards ────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px var(--border);
+    display: none;
+  }
+  .card.active { display: block; animation: slideUp 0.35s ease; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card .qnum {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── Options ──────────────────────────────── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    background: #fdfcf9;
+  }
+  .option:hover {
+    border-color: var(--gold);
+    background: #fffdf7;
+    transform: translateX(2px);
+  }
+  .option:active { transform: scale(0.98); }
+  .option .letter {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+  .option.selected {
+    border-color: var(--accent);
+    background: #fdf6ed;
+    box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
+  }
+
+  /* ── Buttons ──────────────────────────────── */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    margin-top: 16px;
+  }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary:not(:disabled):hover { background: #755033; }
+  .btn-primary:not(:disabled):active { transform: scale(0.97); }
+
+  /* ── Intro card ───────────────────────────── */
+  .features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .feature .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  /* ── Calculating screen ───────────────────── */
+  .calculating {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .calculating.show { display: block; animation: slideUp 0.35s ease; }
+  .calculating .spinner {
+    width: 60px; height: 60px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .calc-steps {
+    text-align: left;
+    max-width: 280px;
+    margin: 16px auto;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .calc-steps div {
+    padding: 6px 0;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* ── Result ───────────────────────────────── */
+  .result {
+    display: none;
+    text-align: center;
+    padding: 10px 0;
+  }
+  .result.show { display: block; animation: slideUp 0.5s ease; }
+  .result .avatar {
+    font-size: 100px;
+    display: block;
+    animation: bounce 0.5s ease infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0) rotate(-5deg); }
+    to   { transform: translateY(-16px) rotate(5deg); }
+  }
+  .result .personality {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin: 8px 0;
+  }
+  .result .tagline {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .result .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+    text-align: center;
+  }
+  .stat {
+    background: #fdf6ed;
+    border-radius: 12px;
+    padding: 14px 8px;
+  }
+  .stat .val { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+  .stat .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .share-btn {
+    width: 100%;
+    padding: 14px;
+    background: #25d366;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: inherit;
+  }
+  .retry-btn {
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ── Brand ──────────────────────────────── -->
+  <div class="brand">
+    <span class="icon">🧬</span>
+    <h1>人格基因检测</h1>
+    <div class="sub">Harvard Behavioral Science Institute</div>
+  </div>
+
+  <!-- ── 0: Intro ───────────────────────────── -->
+  <div class="card active" id="card-intro">
+    <h2>探索你的人格基因密码</h2>
+    <div class="qnum">基于大五人格理论 · 2026 最新修订版</div>
+    <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;">
+      本测试由哈佛行为科学研究院开发，通过 6 道精选题目，
+      结合 AI 语义分析和基因行为学模型，精准定位你的核心人格类型。
+    </p>
+    <div class="features">
+      <div class="feature"><span class="dot"></span> 6 道情景选择题</div>
+      <div class="feature"><span class="dot"></span> AI 实时语义分析引擎</div>
+      <div class="feature"><span class="dot"></span> 基因行为学大数据比对</div>
+      <div class="feature"><span class="dot"></span> 耗时约 2 分钟</div>
+    </div>
+    <button class="btn btn-primary" onclick="goToQuestion(1)">开始检测 →</button>
+  </div>
+
+  <!-- ── 1-6: Questions ──────────────────────── -->
+  <div class="card" id="card-q1">
+    <h2>你路过一面镜子时会做什么？</h2>
+    <div class="qnum">第 1 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q1')"><span class="letter">A</span>停下来整理头发/衣服，确认形象完美</div>
+      <div class="option" onclick="select(this, 'q1')"><span class="letter">B</span>瞟一眼，还行就继续走</div>
+      <div class="option" onclick="select(this, 'q1')"><span class="letter">C</span>对着镜子做鬼脸或者摆个 pose</div>
+      <div class="option" onclick="select(this, 'q1')"><span class="letter">D</span>完全无视，直接走过去</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q1" disabled onclick="goToQuestion(2)">下一题 →</button>
+  </div>
+
+  <div class="card" id="card-q2">
+    <h2>朋友聚会时你通常是？</h2>
+    <div class="qnum">第 2 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q2')"><span class="letter">A</span>气氛组，带动全场，所有人都在听我讲故事</div>
+      <div class="option" onclick="select(this, 'q2')"><span class="letter">B</span>和三五好友深入聊天，不喜欢大场面</div>
+      <div class="option" onclick="select(this, 'q2')"><span class="letter">C</span>安静观察，偶尔插几句精辟的话</div>
+      <div class="option" onclick="select(this, 'q2')"><span class="letter">D</span>专心吃东西，有人找我才聊</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q2" disabled onclick="goToQuestion(3)">下一题 →</button>
+  </div>
+
+  <div class="card" id="card-q3">
+    <h2>发现冰箱里只剩最后一块蛋糕？</h2>
+    <div class="qnum">第 3 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q3')"><span class="letter">A</span>立刻吃掉，先到先得</div>
+      <div class="option" onclick="select(this, 'q3')"><span class="letter">B</span>问一圈有没有人要，没人再吃</div>
+      <div class="option" onclick="select(this, 'q3')"><span class="letter">C</span>藏起来，等深夜独享</div>
+      <div class="option" onclick="select(this, 'q3')"><span class="letter">D</span>拍照发朋友圈：谁想和我分享？</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q3" disabled onclick="goToQuestion(4)">下一题 →</button>
+  </div>
+
+  <div class="card" id="card-q4">
+    <h2>你更喜欢哪种周末？</h2>
+    <div class="qnum">第 4 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q4')"><span class="letter">A</span>户外探险，爬山、露营、寻找刺激</div>
+      <div class="option" onclick="select(this, 'q4')"><span class="letter">B</span>宅家刷剧，沙发+零食=完美</div>
+      <div class="option" onclick="select(this, 'q4')"><span class="letter">C</span>约朋友逛街、吃饭、聊天</div>
+      <div class="option" onclick="select(this, 'q4')"><span class="letter">D</span>学点新东西，看书或者上兴趣课</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q4" disabled onclick="goToQuestion(5)">下一题 →</button>
+  </div>
+
+  <div class="card" id="card-q5">
+    <h2>看到有人在群里发了一串神秘代码？</h2>
+    <div class="qnum">第 5 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q5')"><span class="letter">A</span>立刻百度，必须搞清楚是什么</div>
+      <div class="option" onclick="select(this, 'q5')"><span class="letter">B</span>觉得无聊，划走</div>
+      <div class="option" onclick="select(this, 'q5')"><span class="letter">C</span>跟风发一堆🐒🐒🐒表情包刷屏</div>
+      <div class="option" onclick="select(this, 'q5')"><span class="letter">D</span>截图发给朋友问"这啥玩意"</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q5" disabled onclick="goToQuestion(6)">下一题 →</button>
+  </div>
+
+  <div class="card" id="card-q6">
+    <h2>你对「香蕉」的第一反应是？</h2>
+    <div class="qnum">第 6 题 / 6</div>
+    <div class="options">
+      <div class="option" onclick="select(this, 'q6')"><span class="letter">A</span>黄色的水果，富含钾</div>
+      <div class="option" onclick="select(this, 'q6')"><span class="letter">B</span>猴子爱吃的东西 🍌</div>
+      <div class="option" onclick="select(this, 'q6')"><span class="letter">C</span>想到了某个表情包</div>
+      <div class="option" onclick="select(this, 'q6')"><span class="letter">D</span>饿了，想吃一根</div>
+    </div>
+    <button class="btn btn-primary" id="btn-q6" disabled onclick="showResult()">查看结果 →</button>
+  </div>
+
+  <!-- ── Calculating ─────────────────────────── -->
+  <div class="card calculating" id="card-calc">
+    <h2 style="text-align:center;">正在分析你的人格基因…</h2>
+    <div class="spinner"></div>
+    <div class="calc-steps" id="calcSteps"></div>
+  </div>
+
+  <!-- ── Result ──────────────────────────────── -->
+  <div class="card result" id="card-result">
+    <span class="avatar">🐒</span>
+    <div class="personality">猴子人格</div>
+    <div class="tagline">Primatus Simplex · 灵长目核心型</div>
+    <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;text-align:left;">
+      根据大五人格模型与基因行为学数据库（N=1,200,000+）比对，
+      您的人格基因序列与<strong>灵长目猕猴属</strong>高度吻合（匹配度 99.7%）。
+      这一人格类型在人群中占比约为 <strong>0.003%</strong>，极其罕见。
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="val">🍌</div><div class="lbl">香蕉偏好指数</div></div>
+      <div class="stat"><div class="val">🐒</div><div class="lbl">猿猴基因匹配</div></div>
+      <div class="stat"><div class="val">🏔️</div><div class="lbl">花果山原力</div></div>
+      <div class="stat"><div class="val">🌳</div><div class="lbl">爬树天赋</div></div>
+    </div>
+    <p style="font-size:0.78rem;color:var(--muted);text-align:left;line-height:1.6;">
+      <strong>典型特征：</strong>精力旺盛、社交能力强、偶尔冲动、对香蕉有天然好感、擅长在群体中找到自己的位置。历史上，孙悟空也属于这一人格类型。
+    </p>
+    <button class="share-btn" onclick="shareResult()">📤 分享到微信</button>
+    <button class="retry-btn" onclick="restart()">🔄 重新测试（结果不变）</button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const answers = {};
+  let currentQ = 0;
+
+  window.select = function(el, qid) {
+    // 清除同一题的其他选中
+    el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[qid] = el.querySelector('.letter').textContent;
+    // 启用按钮
+    const btn = document.getElementById('btn-' + qid);
+    if (btn) btn.disabled = false;
+  };
+
+  window.goToQuestion = function(n) {
+    // 隐藏所有卡片
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById('card-q' + n);
+    if (card) card.classList.add('active');
+    currentQ = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.showResult = function() {
+    // 隐藏所有卡片，显示计算中
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    const calcCard = document.getElementById('card-calc');
+    calcCard.classList.add('active', 'show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 假计算步骤
+    const steps = [
+      '采集答题数据… ✓',
+      '语义分析编码中… 完成',
+      '比对大五人格模型 (OCEAN)…',
+      '提取行为特征向量… 维度: 5',
+      '检索基因行为学数据库 (N=1,247,831)…',
+      '匹配中… 相似度排序…',
+      '找到最佳匹配: 灵长目·猕猴属',
+      '二次校验… 置信度 99.7%',
+      '生成人格报告… ✓',
+    ];
+
+    const stepsDiv = document.getElementById('calcSteps');
+    stepsDiv.innerHTML = '';
+    steps.forEach((s, i) => {
+      setTimeout(() => {
+        const div = document.createElement('div');
+        div.textContent = s;
+        stepsDiv.appendChild(div);
+      }, i * 500);
+    });
+
+    // 5 秒后显示结果
+    setTimeout(() => {
+      calcCard.classList.remove('active', 'show');
+      const resultCard = document.getElementById('card-result');
+      resultCard.classList.add('active', 'show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, steps.length * 500 + 600);
+  };
+
+  window.restart = function() {
+    // 重置
+    for (let i = 1; i <= 6; i++) {
+      delete answers['q' + i];
+      document.getElementById('card-q' + i).querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      const btn = document.getElementById('btn-q' + i);
+      if (btn) btn.disabled = true;
+    }
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active', 'show'));
+    document.getElementById('card-intro').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.shareResult = function() {
+    // 微信分享提示
+    alert('点击右上角 ··· → 分享给朋友\n\n让他们也测测吧 🐒');
+  };
+})();
+</script>
+</body>
+</html>
