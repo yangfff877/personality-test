@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大五人格量表 · OCEAN Big Five</title>
+<style>
+  :root {
+    --bg: #f7f5f0; --card: #fff; --text: #1e1b18;
+    --accent: #3b6fb6; --muted: #8c8070; --border: #e5ded5;
+    --o:#c0392b; --c:#27ae60; --e:#2980b9; --a:#e67e22; --n:#8e44ad;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;
+    background:var(--bg); min-height:100vh; display:flex; justify-content:center;
+    padding:20px 12px 40px; color:var(--text); line-height:1.6;
+  }
+  .app { width:100%; max-width:560px; display:flex; flex-direction:column; gap:14px; }
+  .header { text-align:center; padding:28px 0 8px; }
+  .header h1 { font-size:1.5rem; font-weight:800; letter-spacing:2px; }
+  .header .sub { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+  .card {
+    background:var(--card); border-radius:16px; padding:26px 22px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04);
+  }
+  .card h2 { font-size:1rem; margin-bottom:4px; line-height:1.5; }
+  .card .tag { font-size:0.7rem; color:var(--muted); margin-bottom:16px; }
+  .options { display:flex; justify-content:space-between; gap:4px; }
+  .opt {
+    flex:1; text-align:center; padding:12px 4px;
+    border:2px solid var(--border); border-radius:10px; cursor:pointer;
+    transition:all 0.15s; font-size:0.72rem; background:#fdfcf9;
+  }
+  .opt:hover { border-color:#c0b8aa; }
+  .opt.sel { border-color:var(--accent); background:#eef4fb; font-weight:700; color:var(--accent); }
+  .opt .num { display:block; font-size:1.1rem; font-weight:800; margin-bottom:2px; }
+  .btn {
+    padding:14px 24px; border:none; border-radius:12px; font-size:0.95rem;
+    font-weight:700; cursor:pointer; font-family:inherit; letter-spacing:1px; transition:all 0.15s;
+  }
+  .btn-next { background:var(--accent); color:#fff; flex:3; }
+  .btn-next:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-next:not(:disabled):active { transform:scale(0.97); }
+  .btn-prev { background:#fff; border:2px solid var(--border); color:var(--muted); flex:1; }
+  .prog-text { display:flex; justify-content:space-between; font-size:0.72rem; color:var(--muted); margin-bottom:4px; }
+  .prog-bar { height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .prog-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s; }
+  .page { display:none; }
+  .page.active { display:block; }
+  .intro-dims { list-style:none; margin:16px 0; display:flex; flex-direction:column; gap:8px; }
+  .intro-dims li { display:flex; align-items:flex-start; gap:10px; font-size:0.83rem; color:#555; }
+  .intro-dims .ico {
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:0.8rem; font-weight:900; flex-shrink:0;
+  }
+  .ico-O{background:#fde8e8;color:#c0392b;} .ico-C{background:#e8f8e8;color:#27ae60;}
+  .ico-E{background:#e8f0fd;color:#2980b9;} .ico-A{background:#fef5e7;color:#e67e22;}
+  .ico-N{background:#f3e8f8;color:#8e44ad;}
+  .res-header{text-align:center;padding:16px 0;}
+  .res-header h2{font-size:1.3rem;}
+  .res-header p{font-size:0.8rem;color:var(--muted);}
+  .dim-card{
+    background:var(--card); border-radius:16px; padding:20px 22px;
+    box-shadow:0 2px 14px rgba(0,0,0,0.04); border-left:4px solid #ccc;
+  }
+  .dim-card.O{border-left-color:var(--o);} .dim-card.C{border-left-color:var(--c);}
+  .dim-card.E{border-left-color:var(--e);} .dim-card.A{border-left-color:var(--a);}
+  .dim-card.N{border-left-color:var(--n);}
+  .dim-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .dim-name{font-weight:800;font-size:0.95rem;}
+  .dim-score{font-weight:900;font-size:1.3rem;}
+  .dim-bar-bg{height:8px;background:#eee;border-radius:4px;margin:10px 0;overflow:hidden;}
+  .dim-bar{height:100%;border-radius:4px;transition:width 1s ease;}
+  .O .dim-bar{background:var(--o);} .C .dim-bar{background:var(--c);}
+  .E .dim-bar{background:var(--e);} .A .dim-bar{background:var(--a);}
+  .N .dim-bar{background:var(--n);}
+  .dim-desc{font-size:0.82rem;color:#666;line-height:1.7;}
+  .dim-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .dim-tag{font-size:0.7rem;padding:3px 10px;border-radius:20px;background:#f5f2ed;color:#888;}
+  .chart-box{background:var(--card);border-radius:16px;padding:20px;text-align:center;}
+  .chart-box h3{font-size:0.85rem;color:var(--muted);margin-bottom:12px;letter-spacing:1px;}
+  .summary{
+    background:linear-gradient(135deg,#faf7f2,#f5efe5); border-radius:16px;
+    padding:22px; border:1px solid var(--border); font-size:0.84rem; color:#555; line-height:1.8;
+  }
+  .summary h3{font-size:0.95rem;color:var(--text);margin-bottom:8px;}
+  .btn-re{background:#fff;border:2px solid var(--border);color:var(--muted);
+    padding:14px;border-radius:12px;width:100%;font-size:0.95rem;
+    cursor:pointer;font-family:inherit;margin-bottom:30px;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>🧠 大五人格量表</h1>
+    <div class="sub">BFI-50 · Big Five Inventory · 国际标准版</div>
+  </div>
+
+  <!-- ═══ Intro ════════════════════════════════════════ -->
+  <div class="page active" id="page-intro">
+    <div class="card">
+      <h2>关于本测试</h2>
+      <p style="font-size:0.84rem;color:#666;line-height:1.7;margin-top:6px;">
+        大五人格（Big Five / OCEAN）是心理学界经过数十年实证研究验证的人格理论框架。
+        它用五个核心维度全面描述个体的人格差异，被广泛应用于人格心理学、组织行为和临床评估。
+        本测试基于标准 BFI 量表编制，共 50 道题，预计 6-8 分钟完成。
+      </p>
+      <ul class="intro-dims">
+        <li><span class="ico ico-O">O</span><b>开放性 Openness</b> — 想象力、审美、好奇心、对新事物的接纳程度</li>
+        <li><span class="ico ico-C">C</span><b>尽责性 Conscientiousness</b> — 自律、条理、成就导向、可靠性</li>
+        <li><span class="ico ico-E">E</span><b>外向性 Extraversion</b> — 社交活力、积极情绪、刺激寻求</li>
+        <li><span class="ico ico-A">A</span><b>宜人性 Agreeableness</b> — 同理心、合作、人际信任</li>
+        <li><span class="ico ico-N">N</span><b>情绪稳定性 Neuroticism</b> — 情绪调节、抗压能力（低分 = 情绪稳定）</li>
+      </ul>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:12px;">
+        📋 共 <b>50 题</b>（每维度 10 题，正向 5 + 反向 5）&ensp;|&ensp;
+        ⏱ 约 6-8 分钟 &ensp;|&ensp;
+        🔒 数据仅存本地
+      </p>
+      <button class="btn btn-next" style="width:100%;margin-top:16px;" onclick="start()">开始测试 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ Questions ════════════════════════════════════ -->
+  <div class="page" id="page-questions">
+    <div style="margin-bottom:8px;">
+      <div class="prog-text"><span id="progLabel">第 1 题 / 50</span><span id="progPct">2%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:2%;"></div></div>
+    </div>
+    <div class="card" id="qCard"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-prev" id="btnPrev" style="display:none;" onclick="prevQ()">← 上一题</button>
+      <button class="btn btn-next" id="btnNext" disabled onclick="nextQ()">下一题 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ Results ══════════════════════════════════════ -->
+  <div class="page" id="page-results">
+    <div id="resContent"></div>
+    <button class="btn-re" onclick="restart()">🔄 重新测试</button>
+  </div>
+</div>
+
+<script>
+// ═══════════ BFI-50 ═══════════
+const QQ=[
+  // O-开放性 (Openness) — 10题
+  {id:1,d:'O',r:0,t:'你对诗歌、音乐、绘画等艺术形式有浓厚兴趣，经常主动欣赏。'},
+  {id:2,d:'O',r:0,t:'你喜欢学习新知识，即使它与你的工作或日常无关。'},
+  {id:3,d:'O',r:0,t:'你经常产生天马行空的联想和富有想象力的想法。'},
+  {id:4,d:'O',r:0,t:'旅行时你喜欢探索陌生的地方，而不是回到熟悉的地点。'},
+  {id:5,d:'O',r:0,t:'你对抽象哲学问题（如生命的意义、自由意志）有真正的思考兴趣。'},
+  {id:6,d:'O',r:1,t:'你更喜欢遵循已有的规则和传统，而不是尝试新方法。'},
+  {id:7,d:'O',r:1,t:'抽象的理论讨论让你感到枯燥或不实用。'},
+  {id:8,d:'O',r:1,t:'你认为艺术和文学探讨不如解决实际问题来得有价值。'},
+  {id:9,d:'O',r:1,t:'你对其他文化或不同生活方式没有特别的了解和兴趣。'},
+  {id:10,d:'O',r:1,t:'你不太喜欢变化，倾向于保持现状和熟悉的节奏。'},
+  // C-尽责性 (Conscientiousness) — 10题
+  {id:11,d:'C',r:0,t:'你做事有条理，习惯制定详细计划并按步骤执行。'},
+  {id:12,d:'C',r:0,t:'你总是按时完成任务，很少拖延到最后一刻。'},
+  {id:13,d:'C',r:0,t:'你对自己的承诺非常认真，别人可以信赖你说到做到。'},
+  {id:14,d:'C',r:0,t:'你倾向于保持住所和工作空间的整洁和有序。'},
+  {id:15,d:'C',r:0,t:'你设定了清晰的人生目标，并且有在为之持续努力。'},
+  {id:16,d:'C',r:1,t:'你经常在截止日期前才匆忙赶工。'},
+  {id:17,d:'C',r:1,t:'你容易分心，一件事没做完就跳到另一件。'},
+  {id:18,d:'C',r:1,t:'你不太在意细节，觉得"差不多就行"。'},
+  {id:19,d:'C',r:1,t:'你的日程安排比较随意，不喜欢被计划束缚。'},
+  {id:20,d:'C',r:1,t:'你曾因为粗心大意犯过代价不小的错误。'},
+  // E-外向性 (Extraversion) — 10题
+  {id:21,d:'E',r:0,t:'你乐于成为众人关注的焦点，享受表现自己的机会。'},
+  {id:22,d:'E',r:0,t:'聚会和社交活动让你感到精力充沛，而不是疲惫。'},
+  {id:23,d:'E',r:0,t:'你善于和陌生人打开话题，能迅速融入新的群体。'},
+  {id:24,d:'E',r:0,t:'你通常保持积极乐观的心情，情绪基调偏向愉快。'},
+  {id:25,d:'E',r:0,t:'你喜欢快节奏、充满刺激和变化的生活。'},
+  {id:26,d:'E',r:1,t:'太多社交活动让你感到消耗，需要大量独处时间来恢复。'},
+  {id:27,d:'E',r:1,t:'在群体中你更倾向于安静观察，而不是主动发言。'},
+  {id:28,d:'E',r:1,t:'你更喜欢一对一的深度交谈，不喜欢热闹的大型聚会。'},
+  {id:29,d:'E',r:1,t:'比起当众演讲或表演，你更喜欢在幕后默默工作。'},
+  {id:30,d:'E',r:1,t:'你不喜欢成为关注的焦点，宁愿把舞台让给别人。'},
+  // A-宜人性 (Agreeableness) — 10题
+  {id:31,d:'A',r:0,t:'你很容易对别人的处境产生同情，并愿意主动提供帮助。'},
+  {id:32,d:'A',r:0,t:'你会尽量避免冲突，哪怕有时需要牺牲一些自己的利益。'},
+  {id:33,d:'A',r:0,t:'你相信大多数人在本质上是正直和善良的。'},
+  {id:34,d:'A',r:0,t:'别人向你倾诉烦恼时，你会耐心倾听而不急于评判。'},
+  {id:35,d:'A',r:0,t:'团队合作中你会为了整体利益而放下个人的偏好。'},
+  {id:36,d:'A',r:1,t:'你在争论中更在意输赢，即使这样会伤害到关系。'},
+  {id:37,d:'A',r:1,t:'你对别人的错误容忍度不高，容易感到不耐烦。'},
+  {id:38,d:'A',r:1,t:'你倾向于认为别人做事大多有某种隐藏的动机。'},
+  {id:39,d:'A',r:1,t:'如果有人妨碍到你，你会毫不犹豫地让他知道。'},
+  {id:40,d:'A',r:1,t:'你不太擅长安慰情绪低落的人，觉得那是他们自己的事。'},
+  // N-情绪稳定性 (Neuroticism) — 10题，高分=情绪不稳定
+  {id:41,d:'N',r:0,t:'你经常感到焦虑或紧张，有时连自己都无法说清原因。'},
+  {id:42,d:'N',r:0,t:'负面情绪在你的脑海中反复循环，很难主动摆脱。'},
+  {id:43,d:'N',r:0,t:'别人一句无心的话可能让你反复琢磨好几天。'},
+  {id:44,d:'N',r:0,t:'面对不确定的事情，你倾向于往最坏的方向去想象。'},
+  {id:45,d:'N',r:0,t:'你容易因为日常的小事而感到烦躁或情绪波动。'},
+  {id:46,d:'N',r:1,t:'你在压力之下仍然能保持冷静，很少慌乱。'},
+  {id:47,d:'N',r:1,t:'你很少长时间陷入低落情绪，能较快地调整心态。'},
+  {id:48,d:'N',r:1,t:'你能从容应对批评和失败，从中学习而不是被其击垮。'},
+  {id:49,d:'N',r:1,t:'即使周围的人都焦虑不安，你也能保持情绪稳定。'},
+  {id:50,d:'N',r:1,t:'你整体上对自己的生活感到满意，很少感到强烈的不安。'},
+];
+
+const OPTS=[
+  {l:'非常不同意',v:1},{l:'不同意',v:2},{l:'中立',v:3},{l:'同意',v:4},{l:'非常同意',v:5},
+];
+const DN={O:'开放性',C:'尽责性',E:'外向性',A:'宜人性',N:'情绪稳定性'};
+const DK=['O','C','E','A','N'];
+const DC={O:'#c0392b',C:'#27ae60',E:'#2980b9',A:'#e67e22',N:'#8e44ad'};
+const DT={O:'🎨 开放性',C:'📋 尽责性',E:'🎤 外向性',A:'🤝 宜人性',N:'🌊 情绪稳定性'};
+
+let ans={},idx=0;
+
+window.start=function(){ans={};idx=0;document.getElementById('page-intro').classList.remove('active');document.getElementById('page-questions').classList.add('active');renderQ(0);};
+
+function renderQ(i){
+  idx=i;const q=QQ[i];
+  document.getElementById('progLabel').textContent='第 '+(i+1)+' 题 / '+QQ.length;
+  const p=Math.round(((i+1)/QQ.length)*100);
+  document.getElementById('progPct').textContent=p+'%';
+  document.getElementById('progFill').style.width=p+'%';
+  const bt={O:'🔴',C:'🟢',E:'🔵',A:'🟡',N:'🟣'}[q.d];
+  document.getElementById('qCard').innerHTML='<h2>'+bt+' '+q.t+'</h2><div class="tag">'+DN[q.d]+'</div><div class="options" id="opts"></div>';
+  const ops=document.getElementById('opts');
+  OPTS.forEach(o=>{
+    const dv=document.createElement('div');
+    dv.className='opt'+(ans[q.id]===o.v?' sel':'');
+    dv.innerHTML='<span class="num">'+o.v+'</span>'+o.l;
+    dv.addEventListener('click',()=>{ops.querySelectorAll('.opt').forEach(e=>e.classList.remove('sel'));dv.classList.add('sel');ans[q.id]=o.v;document.getElementById('btnNext').disabled=false;});
+    ops.appendChild(dv);
+  });
+  document.getElementById('btnNext').textContent=i===QQ.length-1?'📊 查看结果':'下一题 →';
+  document.getElementById('btnPrev').style.display=i===0?'none':'block';
+  document.getElementById('btnNext').disabled=!ans[q.id];
+}
+
+window.nextQ=function(){if(idx<QQ.length-1) renderQ(idx+1); else showResults();};
+window.prevQ=function(){if(idx>0) renderQ(idx-1);};
+
+function calc(){
+  const dims={O:[],C:[],E:[],A:[],N:[]};
+  QQ.forEach(q=>{let s=ans[q.id];if(q.r) s=6-s;dims[q.d].push(s);});
+  const sc={};
+  DK.forEach(d=>{const t=dims[d].reduce((a,b)=>a+b,0);sc[d]=Math.round((t/50)*100);});
+  return sc;
+}
+
+function lvl(s){
+  if(s>=75) return['high','很高'];
+  if(s>=60) return['hmid','偏高'];
+  if(s>=40) return['mid','中等'];
+  if(s>=25) return['lmid','偏低'];
+  return['low','很低'];
+}
+
+const DESC={
+ O:{high:'<p>你在开放性上得分很高，意味着你拥有强烈的好奇心与丰富的内在世界。你热衷探索新观念，对艺术、美学和抽象概念有天然的亲近感。在朋友中你可能是"思想最开放"的那个——愿意尝试不同文化的美食、接受非传统观点、质疑既定规则。</p><p>在创意、设计、研究等需要创新的领域，这是你的核心优势。需注意的方面是，过高的开放性有时会让你显得不够聚焦，或对传统和常规缺乏必要的尊重。</p>',
+  hmid:'<p>你在开放性上得分偏高，说明你对新事物持欢迎态度，但并不过分追求新奇。你会主动接触不同观点和体验，同时也能在传统框架内找到自己的节奏。你的创新是务实的——基于现有经验逐步扩展，而非天马行空地推翻一切。</p>',
+  mid:'<p>你在开放性上处于中等水平，既不保守也不激进。你可以在熟悉模式和适度新鲜感之间保持平衡——对新事物不排斥但也不会主动追求，更看重实用和可预测性。这种态度让你面对变化时能平稳适应。</p>',
+  lmid:'<p>你在开放性上得分偏低，更偏好熟悉、稳定和实际的事物。你不太容易被抽象理论或新奇体验所吸引——你喜欢被验证过的方法，对传统和现实问题更加关注。你的脚踏实地在需要稳定性和可靠性的工作中是重要品质。</p>',
+  low:'<p>你是典型的务实派，强烈偏好可预测的环境和已被验证的做法。你不容易被"花里胡哨"的新事物吸引，抽象概念和艺术表达对你来说可能不太重要。你重视传统、规则和实际成效——这种特质让你在需要一致性、纪律性和对细节严格把控的岗位上表现出色。</p>'},
+ C:{high:'<p>你是一个高度自律、组织有序的人。你会制定清晰计划并严格按步骤执行，对他人承诺几乎从不落空。你的生活和工作空间整洁有序——日程表、待办清单、提前到达，这些是你的日常标配。</p><p>在学术、工程、管理等领域，尽责性是你取得成功的关键因素。需注意的是，极端尽责可能导致完美主义倾向，对不按计划行事感到过度焦虑，也容易对自己和他人要求过高。</p>',
+  hmid:'<p>你总体上是一个可靠、有条理的人，但也不至于被计划和规则完全束缚。重要事情你会认真对待并提前准备，但也允许自己在小方面有些灵活。你在自律和随性之间找到了比较健康的平衡点。</p>',
+  mid:'<p>你在计划和随性之间保持弹性。重要事务上能够认真负责，但也享受一定程度的自由和即兴。你偶尔拖延，但最终通常能把事情完成——这是一种适应性很强的状态，既不刻板也不散漫。</p>',
+  lmid:'<p>你更倾向于灵活、随性的生活方式。不太喜欢被详细计划或严格日程约束，有时会拖延到最后一刻才开始。你擅长即兴发挥，在灵活多变的环境中表现更好。需注意缺乏条理可能会让你在某些需要长期坚持的目标上遇到困难。</p>',
+  low:'<p>你是一个随性而为、不喜欢被条条框框束缚的人。计划、日程和整洁的环境不是你的优先考虑——你更关注当下的体验和自由。你在混乱中能找到自己的节奏，在灵活多变的环境中表现出色。需注意拖延和缺乏规划可能给你带来不必要的压力或错失重要机会。</p>'},
+ E:{high:'<p>你是一个充满社交能量的人。聚会和群体活动让你兴奋和充实，你善于主动发起对话，在人群中自然地占据中心位置。你乐观、健谈、热情，喜欢快节奏且充满刺激的生活。</p><p>在销售、公关、教学等需要大量人际互动的职业中，外向性是无价资产。需注意的是，过度的刺激寻求有时会让你忽略独处和反思的价值。</p>',
+  hmid:'<p>你整体上乐于社交，人际互动让你感到愉悦和充电。你在群体中能够自然表达自己，也享受适度的热闹和新奇。你既能在社交场合中活跃，也能在需要时安静下来——这种灵活性让你在各种场景中都游刃有余。</p>',
+  mid:'<p>你处于内外向的中间地带（Ambivert），这是最灵活也最常见的位置。热闹的场合你也能应付，安静的时刻你也能享受。你根据情境调整自己的社交状态，这种弹性让你在各种环境中都能找到舒适的位置。</p>',
+  lmid:'<p>你偏内向，社交活动容易让你感到消耗，需要通过独处来充电。你更喜欢小范围或一对一的深入交流，倾向于深思熟虑之后再发言——这让你说的话通常更有分量。安静不是弱点，深度思考者和出色的倾听者往往属于这个类别。</p>',
+  low:'<p>你是一个非常内向的人，独处是你获取能量和灵感的主要方式。大型社交活动对你是一种消耗而非享受。你喜欢深入、有质量的对话而非闲聊，社交圈不大但关系非常紧密。在需要深度专注和独立思考的领域（编程、研究、写作），内向性反而是强大优势。</p>'},
+ A:{high:'<p>你富有同理心、善于合作并真心关心他人。你会自然而然地考虑别人感受，宁可自己让步也要维护和谐。你相信人性的善良，在团队中是那个润物细无声的粘合剂——别人愿意找你倾诉，也信任你的判断。</p><p>在护理、心理咨询、教育等需要高度共情的领域，宜人性是核心优势。需注意过度迁就他人有时会让自己被利用，学会适当说"不"是重要成长课题。</p>',
+  hmid:'<p>你总体待人友善、愿意合作，对他人有一定信任和同理心。你会在不影响自己核心利益前提下尽量帮助别人，在团队中是积极的协作者。既有关怀他人的温暖，也能在必要时保持适当边界。</p>',
+  mid:'<p>你既不特别迁就他人，也不过分强硬。你对人有同情的部分也有保留的判断——值得的时候你会给予帮助，但不会无原则地让步。这种平衡让你既有人际温度，也有自我保护的界限。</p>',
+  lmid:'<p>你更倾向于直接、坦率地表达自己的想法，不太担心是否会让他人不快。你重视竞争、效率和成果胜过人际关系和谐，在需要强硬决策或推动变革时这是优势。需注意在亲密关系和团队协作中，适度柔软和共情会让合作更加顺畅。</p>',
+  low:'<p>你是一个高度独立、不轻易妥协的人。你直率、敢于挑战、不太在乎别人看法。你对自己观点有强烈信心，在争论中很少主动退让。这种特质让你在需要果断决策、谈判或竞争性环境中具备天然优势。需注意过于强硬的态度可能在长远中损害人际关系和团队合作。</p>'},
+ N:{high:'<p>你的情绪反应比较敏感和强烈。你对压力、批评和不确定性有较强的情绪反应，需要较长时间恢复平静。焦虑和担忧可能是你生活中的常客。</p><p>但重要的是——高敏感性是一把双刃剑。它意味着你对周遭细微变化极为敏锐，在艺术创作、写作、设计等需要捕捉微妙情感的领域，这是难得的天赋。你的深度共情能力也让你成为一个真诚的朋友。建议学习情绪调节技巧（如正念冥想、认知重构），这会显著提升生活质量。</p>',
+  hmid:'<p>你在面对压力和不确定性时会有明显的情绪反应，但通常能有效应对。你有时会感到焦虑或担忧，但这些情绪不会完全支配你的生活。适度的敏感性让你既有情绪上的丰富性，又不至于被情绪淹没。</p>',
+  mid:'<p>你的情绪反应强度适中。面对压力时你会紧张但通常能有效应对，遭受挫折后能在合理时间内恢复。你既不是铁石心肠，也不会被情绪淹没——这种平衡让日常生活相对顺畅。</p>',
+  lmid:'<p>你通常能较好地管理压力和负面情绪。遇到挫折不会轻易崩溃，能较快回归正轨。你的心理韧性让你在日常生活中保持相对稳定——不易被小事打乱节奏。你可能是朋友在困难时刻可以依赖的人。</p>',
+  low:'<p>你拥有出色的心理韧性。几乎不会被日常烦恼所影响，面对真正危机时也能保持冷静和理性。焦虑、自我怀疑和情绪波动很少困扰你——你是风暴中依然能稳握船舵的人。</p><p>这种特质在高压职业（急诊医生、飞行员、高管）中是无价之宝。需注意极低的神经质有时可能让你对风险不够敏感，别忘了偶尔在朋友面前展露柔软一面。</p>'} };
+
+const TAGS={
+ O:{high:['好奇心旺盛','想象力丰富','思想开放','喜欢变化','艺术敏感'],hmid:['愿意尝试新事物','有一定创意','思维灵活'],mid:['务实为主','适度开放','稳定中求新'],lmid:['偏好传统','脚踏实地','重视实务'],low:['高度务实','遵循惯例','注重实际','传统导向']},
+ C:{high:['高度自律','目标导向','完美主义','可靠守信','计划周密'],hmid:['有条不紊','责任意识强','做事认真'],mid:['半计划半随性','灵活适度','偶尔拖延但能补救'],lmid:['随遇而安','偏好灵活','有时拖延'],low:['随性自由','不拘一格','善于即兴','厌恶规则']},
+ E:{high:['社交达人','精力充沛','乐观开朗','喜欢热闹','乐于发言'],hmid:['善于交际','积极活跃','能说能静'],mid:['内外兼备','灵活切换','适应性好'],lmid:['偏爱安静','善于倾听','沉稳内敛'],low:['深度内向','独处充电','思考缜密','专注力强']},
+ A:{high:['极高同理心','乐于助人','信任他人','追求和谐','善于合作'],hmid:['待人友好','乐于配合','有边界地善良'],mid:['友善但有底线','合理妥协','务实合作'],lmid:['直率进取','重视效率','直言不讳'],low:['独立果敢','不畏冲突','竞争意识','直言不讳']},
+ N:{high:['情绪敏感','感受丰富','深度共情','对风险警觉'],hmid:['偶有波动','能自我调节','适度敏感'],mid:['情绪可控','正常范围内','一般心理韧性'],lmid:['情绪稳定','不易焦虑','心理韧性好'],low:['极度稳定','危机中冷静','抗压能力强','情绪调节出色']} };
+
+function showResults(){
+  const sc=calc();
+  document.getElementById('page-questions').classList.remove('active');
+  document.getElementById('page-results').classList.add('active');
+  const sorted=DK.map(d=>({d,s:sc[d]})).sort((a,b)=>b.s-a.s);
+  const top=sorted[0],sec=sorted[1],bot=sorted[4];
+  let h='';
+  h+='<div class="res-header"><h2>你的 OCEAN 人格画像</h2><p>BFI-50 · 基于大五人格理论</p></div>';
+  h+='<div class="chart-box"><h3>人格雷达图</h3><canvas id="radar" width="320" height="320" style="max-width:100%;"></canvas></div>';
+  const tl=lvl(top.s);
+  h+='<div class="summary"><h3>📋 人格概述</h3><p>你的核心人格特质是 <b style="color:'+DC[top.d]+';">'+DT[top.d].split(' ')[1]+'</b>（得分 '+tl[1]+'），同时 <b style="color:'+DC[sec.d]+';">'+DT[sec.d].split(' ')[1]+'</b> 是次要支撑特质。'+(bot.s<30?'相对而言，你在 <b>'+DT[bot.d].split(' ')[1]+'</b> 维度上得分最低，这构成了你人格中对比鲜明的一笔。':'')+'</p></div>';
+  h+='<h3 style="font-size:0.88rem;color:var(--muted);margin-bottom:8px;padding:0 4px;">各维度详细分析</h3>';
+  DK.forEach(d=>{
+    const s=sc[d],lv=lvl(s),ttl=DT[d],cl=DC[d];
+    h+='<div class="dim-card '+d+'"><div class="dim-row"><span class="dim-name">'+ttl+'</span><span class="dim-score" style="color:'+cl+';">'+s+' 分 · '+lv[1]+'</span></div><div class="dim-bar-bg"><div class="dim-bar" style="width:'+s+'%;"></div></div><div class="dim-desc">'+DESC[d][lv[0]]+'</div><div class="dim-tags">'+(TAGS[d][lv[0]]||TAGS[d].mid).map(t=>'<span class="dim-tag">'+t+'</span>').join('')+'</div></div>';
+  });
+  h+='<p style="font-size:0.7rem;color:#bbb;text-align:center;margin-top:20px;line-height:1.7;">本测试基于大五人格量表（BFI）编制，分数为百分位换算值（0-100）。<br>人格是复杂且动态的，没有"好"或"坏"的类型——每个特质在适当场景中都有其独特价值和挑战。</p>';
+  document.getElementById('resContent').innerHTML=h;
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>drawRadar(sc),150);
+}
+
+function drawRadar(sc){
+  const cv=document.getElementById('radar');if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=120,N=5;
+  const labs=['开放性','尽责性','外向性','宜人性','情绪\n稳定性'];
+  const data=DK.map(d=>sc[d]),cols=DK.map(d=>DC[d]);
+  ctx.clearRect(0,0,W,H);
+  for(let lv=1;lv<=5;lv++){ctx.beginPath();for(let i=0;i<=N;i++){const a=-Math.PI/2+(2*Math.PI/N)*i,rr=R*lv/5,x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.closePath();ctx.strokeStyle=lv===5?'#d0d0d0':'#eaeaea';ctx.lineWidth=1;ctx.stroke();}
+  for(let i=0;i<N;i++){const a=-Math.PI/2+(2*Math.PI/N)*i;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));ctx.strokeStyle='#eaeaea';ctx.stroke();}
+  ctx.beginPath();for(let i=0;i<N;i++){const a=-Math.PI/2+(2*Math.PI/N)*i,x=cx+R*(data[i]/100)*Math.cos(a),y=cy+R*(data[i]/100)*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.closePath();ctx.fillStyle='rgba(59,111,182,0.10)';ctx.fill();ctx.strokeStyle='rgba(59,111,182,0.5)';ctx.lineWidth=2.5;ctx.stroke();
+  for(let i=0;i<N;i++){const a=-Math.PI/2+(2*Math.PI/N)*i,x=cx+R*(data[i]/100)*Math.cos(a),y=cy+R*(data[i]/100)*Math.sin(a);ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+  ctx.fillStyle='#333';ctx.font='12px "PingFang SC","Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=0;i<N;i++){const a=-Math.PI/2+(2*Math.PI/N)*i,lx=cx+(R+30)*Math.cos(a),ly=cy+(R+30)*Math.sin(a),ls=labs[i].split('\n');ls.forEach((ln,li)=>ctx.fillText(ln,lx,ly+li*14));const sx=cx+(R*data[i]/100+15)*Math.cos(a),sy=cy+(R*data[i]/100+15)*Math.sin(a);ctx.fillStyle=cols[i];ctx.font='bold 11px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText(data[i]+'',sx,sy);}
+}
+
+window.restart=function(){ans={};idx=0;
+  document.getElementById('page-results').classList.remove('active');
+  document.getElementById('page-questions').classList.remove('active');
+  document.getElementById('page-intro').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+</script>
+</body>
+</html>
